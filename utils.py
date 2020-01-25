@@ -97,8 +97,8 @@ def prepare_list(str_list, max_length, mapper):
 			idx_list.append(mapper[s])
 		else:
 			idx_list.append(mapper[UNIQUE])
-	while len(idx_list) < max_length:
-		idx_list.append(mapper[PAD])
+
+	idx_list.extend([mapper[PAD]] * (max_length - len(idx_list)))
 	return idx_list
 
 
@@ -113,10 +113,6 @@ def parse_line(s):
 			del words_list[i]
 		elif word[0].isdigit():
 			words_list[i] = NUMBER
-	# for letter in word:
-	#     if letter.isdigit():
-	#         words_list[i] = NUMBER
-	#         break
 	return words_list
 
 
