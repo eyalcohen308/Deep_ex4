@@ -1,6 +1,5 @@
 .idea/
 __MACOSX/
-model.py
 snli_1.0.zip
 snli_1.0/
 snli_1.0_dev.jsonl

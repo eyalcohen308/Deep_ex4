@@ -16,6 +16,8 @@ def iterate_model(encoder, atten_model, train_data_loader, encoder_optimizer, at
 	limit_to_print = round(len(train_data_loader) * (percentages_show / 100))
 	limit_to_print = max(1, limit_to_print)
 
+	print("\nTrain | Epoch {0}:".format(epoch + 1))
+
 	for index, batch in enumerate(train_data_loader):
 		(batch_sen1, batch_sen2), batch_labels = batch
 		batch_sen1 = batch_sen1.cuda()
@@ -36,10 +38,14 @@ def iterate_model(encoder, atten_model, train_data_loader, encoder_optimizer, at
 
 		# Information printing:
 		if index % limit_to_print == 0 and index != 0:
-			percentages = (index / len(train_data_loader)) * 100
-			print("Train | Epoch: {0} | {1:.2f}% sentences finished".format(epoch + 1, percentages))
+			percentages = index / len(train_data_loader)
+			update_progress(percentages)
 
-	print('\n------ Train | Finished epoch {0} ------\n'.format(epoch + 1))
+	print('\r------ Train | Finished epoch {0} ------'.format(epoch + 1))
+
+
+def update_progress(workdone):
+	print("\rProgress: [{0:50s}] {1:.1f}%".format('#' * int(workdone * 50), workdone * 100), end="", flush=True)
 
 
 def evaluate_accuracy(encoder, atten_model, dev_data_loader, criterion, epoch):
@@ -49,6 +55,7 @@ def evaluate_accuracy(encoder, atten_model, dev_data_loader, criterion, epoch):
 	counter = 0
 	avg_acc = 0
 	avg_loss = 0
+	print("\nDev | Epoch {0}:".format(epoch + 1))
 	for index, batch in enumerate(dev_data_loader):
 		(batch_sen1, batch_sen2), batch_labels = batch
 		batch_sen1 = batch_sen1.cuda()
@@ -69,17 +76,17 @@ def evaluate_accuracy(encoder, atten_model, dev_data_loader, criterion, epoch):
 
 		# Information printing:
 		if index % limit_to_print == 0 and index != 0:
-			percentages = (index / len(dev_data_loader)) * 100
-			print("Dev | Epoch: {0} | {1:.2f}% sentences finished".format(epoch + 1, percentages))
+			percentages = (index / len(dev_data_loader))
+			update_progress(percentages)
 
-	print('\n------ Dev | Finished epoch {0} ------\n'.format(epoch + 1))
+	print('\r------ Dev | Finished epoch {0} ------'.format(epoch + 1))
 
 	# Calculating acc and loss on all data set.
 	acc = (avg_acc / counter) * 100
 	loss = avg_loss / counter
 
-	print("\nEpoch Accuracy: " + str(acc))
-	print("\nEpoch Loss: " + str(loss))
+	print("Epoch Accuracy: {0}".format(str(acc)))
+	print("Epoch Loss: {0}\n".format(str(loss)))
 	return acc, loss
 
 
@@ -98,8 +105,8 @@ def train(encoder, atten, train_loader, dev_loader, criterion, encoder_optimizer
 			dev_loss_list.append(dev_loss)
 
 	if CALCULATE_PERFORMANCE_ON_DEV:
-		print("\n\nTotal Accuracy: " + str(dev_acc_list))
-		print("\nTotal Loss: " + str(dev_loss_list))
+		print("\n\nTotal Accuracy: {0}".format(str(dev_acc_list)))
+		print("\nTotal Loss: {0}\n".format(str(dev_loss_list)))
 
 
 CALCULATE_PERFORMANCE_ON_DEV = True
@@ -113,7 +120,6 @@ if __name__ == "__main__":
 	F2I = train_parser.F2I
 	L2I = train_parser.L2I
 	dev_parser = DataParser('snli_1.0_dev.jsonl', F2I, L2I)
-	print(len(train_parser.F2I))
 	batch_size = 30
 	train_loader = make_loader(train_parser, batch_size)
 	random.shuffle(train_loader)
@@ -122,8 +128,10 @@ if __name__ == "__main__":
 
 	num_embedding = len(F2I)
 	embedding_size = 300
-	hidden_size = 300
+	hidden_size = 400
 	lr = 0.05
+	model_optimizer = 0.025
+	encoder_optimizer = 0.05
 	epochs = 10
 	label_size = len(L2I)
 	criterion = nn.NLLLoss(ignore_index=F2I[PAD])
@@ -133,8 +141,8 @@ if __name__ == "__main__":
 	atten = Atten(hidden_size, label_size)
 	atten.cuda()
 
-	encoder_optimizer = optim.SGD(encoder.parameters(), lr)
-	atten_optimizer = optim.SGD(atten.parameters(), lr)
+	encoder_optimizer = optim.SGD(encoder.parameters(), encoder_optimizer)
+	atten_optimizer = optim.SGD(atten.parameters(), model_optimizer)
 
 	# train
 	train(encoder, atten, train_loader, dev_loader, criterion, encoder_optimizer, atten_optimizer, epochs)
