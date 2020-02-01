@@ -55,10 +55,10 @@ class Atten(nn.Module):
 		self.mlp_h = self._mlp_layers(2 * self.hidden_size, self.hidden_size)
 
 		self.final_linear = nn.Linear(
-			self.hidden_size, 100, bias=True)
+			self.hidden_size, 250, bias=True)
 
 		self.test_linear = nn.Linear(
-			100, self.label_size, bias=True)
+			250, self.label_size, bias=True)
 
 		self.log_prob = nn.LogSoftmax(dim=1)
 

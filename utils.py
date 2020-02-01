@@ -11,8 +11,41 @@ UNIQUE = '<uuukkk>'
 NUMBER = '<num>'
 
 
+def glov_dict():
+	glov = {}
+	with open("./Data/glove.6B.300d.txt", 'r') as f:
+		for line in f:
+			values = line.split()
+			word = values[0]
+			vector = np.asarray(values[1:], "float32")
+			glov[word] = torch.from_numpy(vector)
+			glov[word] = self.glov[word].type(torch.float)
+	return glov
+
+
+def get_glove_vector(sentences, F2I):
+	index_sent = 0
+	sentences_ret = []
+	for sent in sentences:
+		sentence = []
+		index_word = 0
+		for word in sent:
+			if word in F2I:
+				sentence.append(F2I[word].reshape(1, -1))
+			else:
+				sentence.append(F2I[UNIQUE].reshape(1, -1))
+			index_word += 1
+		sentence = torch.cat(sentence)
+		sentence = sentence.reshape(1, sentence.shape[0], sentence.shape[1])
+		sentences_ret.append(sentence)
+		index_sent += 1
+	return torch.cat(sentences_ret)
+
+
 class DataParser:
-	def __init__(self, file_name, F2I=None, L2I=None):
+	def __init__(self, file_name, F2I=None, L2I=None, with_glove=False):
+		if with_glove:
+			F2I = glov_dict()
 		if L2I is None:
 			L2I = {}
 		if F2I is None:
@@ -38,9 +71,6 @@ class DataParser:
 			label = d['gold_label']
 
 			self.data.append(((sent1_words, sent2_words), label))
-			#
-			# if max(len(sent1_words), len(sent2_words)) > max_length:
-			# 	max_length = max(len(sent1_words), len(sent2_words))
 
 			for word in sent1_words:
 				vocab.add(word.lower())
@@ -203,19 +233,3 @@ def make_loader(data_parser, batch_size=4):
 	tensorize_batches(batches)
 
 	return batches
-
-
-def analayze_data(data):
-	sent1_counter = Counter([len(sent1) for (sent1, sent2), label in data])
-	sent2_counter = Counter([len(sent2) for (sent1, sent2), label in data])
-	sent1_points = [(i, sent1_counter[i]) for i in range(83)]
-	sent2_points = [(i, sent2_counter[i]) for i in range(83)]
-	sub_lengths = [abs(len(sent1) - len(sent2)) for (sent1, sent2), label in data]
-	print(sum(sub_lengths) / len(sub_lengths))
-	print(sum(x > 4 for x in sub_lengths))
-	print(sent1_points)
-	print(sent2_points)
-# plt.plot(sent1_points)
-# plt.show()
-# plt.plot(sent2_points)
-# plt.show()

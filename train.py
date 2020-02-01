@@ -110,12 +110,12 @@ def train(encoder, atten, train_loader, dev_loader, criterion, encoder_optimizer
 
 
 CALCULATE_PERFORMANCE_ON_DEV = True
+USE_GLOVE = False
 
 if __name__ == "__main__":
-	cuda.set_device(0)  # maybe change to 1???
-	print("cuda is on ", cuda.is_available())
+	cuda.set_device(0)
 
-	train_parser = DataParser('snli_1.0_train.jsonl')
+	train_parser = DataParser('snli_1.0_train.jsonl', with_glove=USE_GLOVE)
 	train_data = train_parser.data
 	F2I = train_parser.F2I
 	L2I = train_parser.L2I
