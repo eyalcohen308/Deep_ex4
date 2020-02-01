@@ -1,10 +1,13 @@
 import re
 import json
+import zipfile
 
 import torch
 import matplotlib.pyplot as plt
 import numpy as np
 from collections import Counter
+
+import wget as wget
 
 PAD = '<pad>'
 UNIQUE = '<uuukkk>'
@@ -12,6 +15,10 @@ NUMBER = '<num>'
 
 
 def glov_dict():
+	glov_dir = wget.download("http://nlp.stanford.edu/data/{}".format('glove.6B.zip'))
+	zip = zipfile.ZipFile(glov_dir)
+	zip.extractall(path=".")
+
 	glov = {}
 	with open("./Data/glove.6B.300d.txt", 'r') as f:
 		for line in f:
@@ -19,7 +26,7 @@ def glov_dict():
 			word = values[0]
 			vector = np.asarray(values[1:], "float32")
 			glov[word] = torch.from_numpy(vector)
-			glov[word] = self.glov[word].type(torch.float)
+			glov[word] = glov[word].type(torch.float)
 	return glov
 
 
