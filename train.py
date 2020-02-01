@@ -111,15 +111,18 @@ def train(encoder, atten, train_loader, dev_loader, criterion, encoder_optimizer
 
 CALCULATE_PERFORMANCE_ON_DEV = True
 USE_GLOVE = False
+downloaded_snli = wget.download("https://nlp.stanford.edu/projects/snli/snli_1.0.zip")
+zip = zipfile.ZipFile(downloaded_snli)
+zip.extractall(path=".")
 
 if __name__ == "__main__":
-	cuda.set_device(0)
+	# cuda.set_device(0)
 
-	train_parser = DataParser('snli_1.0_train.jsonl', with_glove=USE_GLOVE)
+	train_parser = DataParser('./snli_1.0/snli_1.0_train.jsonl', with_glove=USE_GLOVE)
 	train_data = train_parser.data
 	F2I = train_parser.F2I
 	L2I = train_parser.L2I
-	dev_parser = DataParser('snli_1.0_dev.jsonl', F2I, L2I)
+	dev_parser = DataParser('./snli_1.0/snli_1.0_dev.jsonl', F2I, L2I)
 	batch_size = 30
 	train_loader = make_loader(train_parser, batch_size)
 	random.shuffle(train_loader)
